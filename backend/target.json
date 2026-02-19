@@ -1,0 +1,66 @@
+{ "regiones":[ "Murcia", "Alicante", "Valencia", "Madrid"],
+    "targets":
+    [
+  {
+    "nombre": "Idealista",
+    "web": "https://www.idealista.com"
+  },
+  {
+    "nombre": "Fotocasa",
+    "web": "https://www.fotocasa.es"
+  },
+  {
+    "nombre": "Tecnocasa",
+    "web": "https://www.tecnocasa.es"
+  },
+  {
+    "nombre": "RE/MAX España",
+    "web": "https://www.remax.es"
+  },
+  {
+    "nombre": "Century 21",
+    "web": "https://www.century21.es"
+  },
+  {
+    "nombre": "Engel & Völkers",
+    "web": "https://www.engelvoelkers.com/es"
+  },
+  {
+    "nombre": "Donpiso",
+    "web": "https://www.donpiso.com"
+  },
+  {
+    "nombre": "Solvia",
+    "web": "https://www.solvia.es"
+  },
+  {
+    "nombre": "Haya Real Estate",
+    "web": "https://www.haya.es"
+  },
+  {
+    "nombre": "Servihabitat",
+    "web": "https://www.servihabitat.com"
+  },
+  {
+    "nombre": "Redpiso",
+    "web": "https://www.redpiso.es"
+  },
+  {
+    "nombre": "Pisos.com",
+    "web": "https://www.pisos.com"
+  },
+  {
+    "nombre": "Aliseda Inmobiliaria",
+    "web": "https://www.alisedainmobiliaria.com"
+  },
+  {
+    "nombre": "Altamira Inmuebles",
+    "web": "https://www.altamirainmuebles.com"
+  },
+  {
+    "nombre": "Habitaclia",
+    "web": "https://www.habitaclia.com"
+  }
+
+]
+}
