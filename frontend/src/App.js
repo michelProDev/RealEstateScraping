@@ -12,6 +12,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [xlsxFile, setXlsxFile] = useState(null);
   const [htmlFile, setHtmlFile] = useState(null);
+  const [precioMax, setPrecioMax] = useState('');
 
   useEffect(() => {
     axios.get(`${API_URL}/targets`)
@@ -19,6 +20,7 @@ export default function App() {
         setTargets(res.data.targets || []);
         setRegiones(res.data.regiones || []);
         setSelectedRegiones(res.data.regiones || []);
+        if (res.data.precio) setPrecioMax(res.data.precio);
       })
       .catch(err => {
         setError('Error cargando los datos de inmobiliarias');
@@ -51,6 +53,7 @@ export default function App() {
         nombre: target.nombre,
         web: target.web,
         regiones: selectedRegiones,
+        precio_max: precioMax || null,
       });
 
       setMessage(res.data.message);
@@ -103,6 +106,24 @@ export default function App() {
                 {selectedRegiones.includes(region) ? '✓ ' : ''}{region}
               </button>
             ))}
+          </div>
+        </section>
+
+        {/* Price Filter */}
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>💰 Precio máximo</h2>
+          <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+            <input
+              type="number"
+              value={precioMax}
+              onChange={(e) => setPrecioMax(e.target.value)}
+              placeholder="Sin límite"
+              style={styles.priceInput}
+            />
+            <span style={{color: '#666', fontSize: '0.95rem'}}>€</span>
+            {precioMax && (
+              <button onClick={() => setPrecioMax('')} style={styles.clearBtn}>✕</button>
+            )}
           </div>
         </section>
 
@@ -270,6 +291,24 @@ const styles = {
   regionChipActive: {
     background: '#0f3460',
     color: '#fff',
+  },
+  priceInput: {
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: '2px solid #ddd',
+    fontSize: '1.1rem',
+    width: '200px',
+    outline: 'none',
+    fontWeight: '600',
+    color: '#1a1a2e',
+  },
+  clearBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.2rem',
+    color: '#999',
+    cursor: 'pointer',
+    padding: '4px 8px',
   },
   loadingBar: {
     display: 'flex',

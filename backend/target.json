@@ -1,4 +1,5 @@
 { "regiones":[ "Murcia", "Alicante", "Valencia", "Madrid"],
+"precio" :"250000",
     "targets":
     [
   {

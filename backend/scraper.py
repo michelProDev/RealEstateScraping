@@ -39,7 +39,7 @@ def get_first_link(item, base_url):
     return ""
 
 
-def scrape_inmobiliaria(nombre, web, regiones):
+def scrape_inmobiliaria(nombre, web, regiones, precio_max=None):
     nombre_lower = nombre.lower().strip()
 
     scrapers = {
@@ -67,8 +67,12 @@ def scrape_inmobiliaria(nombre, web, regiones):
             scraper_fn = fn
             break
 
-    print(f"[{nombre}] Iniciando scraping...")
-    return scraper_fn(nombre, web, regiones)
+    if precio_max:
+        print(f"[{nombre}] Iniciando scraping (precio max: {precio_max})...")
+    else:
+        print(f"[{nombre}] Iniciando scraping...")
+    resultados = scraper_fn(nombre, web, regiones, precio_max=precio_max)
+    return filter_by_price(resultados, precio_max)
 
 
 def check_elevator(text):
@@ -102,14 +106,41 @@ def extract_price(text):
     return match.group(0).strip() if match else ""
 
 
+def parse_price_number(precio_str):
+    if not precio_str:
+        return None
+    cleaned = re.sub(r'[^\d]', '', precio_str)
+    if cleaned:
+        return int(cleaned)
+    return None
+
+
+def filter_by_price(resultados, precio_max):
+    if not precio_max:
+        return resultados
+    filtered = []
+    for r in resultados:
+        num = parse_price_number(r.get("precio", ""))
+        if num is None or num <= precio_max:
+            filtered.append(r)
+    before = len(resultados)
+    after = len(filtered)
+    if before != after:
+        print(f"  Filtro precio (<= {precio_max}): {before} -> {after} resultados")
+    return filtered
+
+
 # ---------------------------------------------------------------------------
 # PISOS.COM  (verified working with requests)
 # ---------------------------------------------------------------------------
-def scrape_pisos_com(nombre, base_url, regiones):
+def scrape_pisos_com(nombre, base_url, regiones, precio_max=None):
     resultados = []
     for region in regiones:
         region_slug = region.lower().replace(" ", "-")
-        url = f"{base_url}/venta/pisos-{region_slug}/"
+        if precio_max:
+            url = f"{base_url}/venta/pisos-{region_slug}/0-{precio_max}/"
+        else:
+            url = f"{base_url}/venta/pisos-{region_slug}/"
         print(f"[Pisos.com] Scraping {region}...")
         try:
             r = fetch(url)
@@ -154,11 +185,13 @@ def scrape_pisos_com(nombre, base_url, regiones):
 # ---------------------------------------------------------------------------
 # FOTOCASA  (verified working with requests, articles have data in text)
 # ---------------------------------------------------------------------------
-def scrape_fotocasa(nombre, base_url, regiones):
+def scrape_fotocasa(nombre, base_url, regiones, precio_max=None):
     resultados = []
     for region in regiones:
         region_slug = region.lower().replace(" ", "-")
         url = f"{base_url}/es/comprar/viviendas/{region_slug}-provincia/todas-las-zonas/l"
+        if precio_max:
+            url += f"?maxPrice={precio_max}"
         print(f"[Fotocasa] Scraping {region}...")
         try:
             r = fetch(url)
@@ -209,7 +242,7 @@ def scrape_fotocasa(nombre, base_url, regiones):
 # ---------------------------------------------------------------------------
 # IDEALISTA  (uses Playwright to bypass Cloudflare)
 # ---------------------------------------------------------------------------
-def scrape_idealista(nombre, base_url, regiones):
+def scrape_idealista(nombre, base_url, regiones, precio_max=None):
     resultados = []
     try:
         from playwright.sync_api import sync_playwright
@@ -234,10 +267,16 @@ def scrape_idealista(nombre, base_url, regiones):
 
             for region in regiones:
                 region_slug = region.lower().replace(" ", "-")
-                urls_to_try = [
-                    f"{base_url}/venta-viviendas/{region_slug}-provincia/",
-                    f"{base_url}/venta-viviendas/{region_slug}/",
-                ]
+                if precio_max:
+                    urls_to_try = [
+                        f"{base_url}/venta-viviendas/{region_slug}-provincia/con-precio-hasta_{precio_max}/",
+                        f"{base_url}/venta-viviendas/{region_slug}/con-precio-hasta_{precio_max}/",
+                    ]
+                else:
+                    urls_to_try = [
+                        f"{base_url}/venta-viviendas/{region_slug}-provincia/",
+                        f"{base_url}/venta-viviendas/{region_slug}/",
+                    ]
                 print(f"[Idealista] Scraping {region}...")
                 for url in urls_to_try:
                     try:
@@ -302,14 +341,15 @@ def scrape_idealista(nombre, base_url, regiones):
 # ---------------------------------------------------------------------------
 # HABITACLIA  (verified URL pattern: viviendas-{region}.htm)
 # ---------------------------------------------------------------------------
-def scrape_habitaclia(nombre, base_url, regiones):
+def scrape_habitaclia(nombre, base_url, regiones, precio_max=None):
     resultados = []
     for region in regiones:
         region_slug = region.lower().replace(" ", "-")
+        price_param = f"?maxp={precio_max}" if precio_max else ""
         urls_to_try = [
-            f"{base_url}/comprar-{region_slug}.htm",
-            f"{base_url}/viviendas-{region_slug}.htm",
-            f"{base_url}/pisos-{region_slug}.htm",
+            f"{base_url}/comprar-{region_slug}.htm{price_param}",
+            f"{base_url}/viviendas-{region_slug}.htm{price_param}",
+            f"{base_url}/pisos-{region_slug}.htm{price_param}",
         ]
         print(f"[Habitaclia] Scraping {region}...")
         for url in urls_to_try:
@@ -360,7 +400,7 @@ def scrape_habitaclia(nombre, base_url, regiones):
 # ---------------------------------------------------------------------------
 # REDPISO
 # ---------------------------------------------------------------------------
-def scrape_redpiso(nombre, base_url, regiones):
+def scrape_redpiso(nombre, base_url, regiones, precio_max=None):
     resultados = []
     for region in regiones:
         region_slug = region.lower().replace(" ", "-")
@@ -417,28 +457,28 @@ def scrape_redpiso(nombre, base_url, regiones):
 # ---------------------------------------------------------------------------
 # DONPISO
 # ---------------------------------------------------------------------------
-def scrape_donpiso(nombre, base_url, regiones):
-    return scrape_generic(nombre, base_url, regiones)
+def scrape_donpiso(nombre, base_url, regiones, precio_max=None):
+    return scrape_generic(nombre, base_url, regiones, precio_max=precio_max)
 
 
 # ---------------------------------------------------------------------------
 # SOLVIA
 # ---------------------------------------------------------------------------
-def scrape_solvia(nombre, base_url, regiones):
-    return scrape_generic(nombre, base_url, regiones)
+def scrape_solvia(nombre, base_url, regiones, precio_max=None):
+    return scrape_generic(nombre, base_url, regiones, precio_max=precio_max)
 
 
 # ---------------------------------------------------------------------------
 # TECNOCASA
 # ---------------------------------------------------------------------------
-def scrape_tecnocasa(nombre, base_url, regiones):
-    return scrape_generic(nombre, base_url, regiones)
+def scrape_tecnocasa(nombre, base_url, regiones, precio_max=None):
+    return scrape_generic(nombre, base_url, regiones, precio_max=precio_max)
 
 
 # ---------------------------------------------------------------------------
 # GENERIC FALLBACK (requests + cloudscraper, multiple URL patterns)
 # ---------------------------------------------------------------------------
-def scrape_generic(nombre, base_url, regiones):
+def scrape_generic(nombre, base_url, regiones, precio_max=None):
     resultados = []
     for region in regiones:
         region_slug = region.lower().replace(" ", "-")

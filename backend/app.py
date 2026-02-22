@@ -31,12 +31,18 @@ def scrape():
     nombre = body.get("nombre")
     web = body.get("web")
     regiones = body.get("regiones", [])
+    precio_max = body.get("precio_max")
+    if precio_max:
+        try:
+            precio_max = int(precio_max)
+        except (ValueError, TypeError):
+            precio_max = None
 
     if not nombre or not web:
         return jsonify({"error": "Faltan parámetros nombre o web"}), 400
 
     try:
-        resultados = scrape_inmobiliaria(nombre, web, regiones)
+        resultados = scrape_inmobiliaria(nombre, web, regiones, precio_max=precio_max)
 
         if not resultados:
             return jsonify({"error": f"No se encontraron resultados para {nombre}"}), 404
