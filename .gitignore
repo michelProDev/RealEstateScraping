@@ -1,0 +1,5 @@
+backend/output/
+backend/__pycache__/
+node_modules/
+frontend/build/
+*.pyc
